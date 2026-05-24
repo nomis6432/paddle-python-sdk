@@ -1,3 +1,4 @@
+import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Iterator
 from typing import TypeVar, Generic
@@ -28,6 +29,10 @@ class Collection(ABC, Generic[T], Iterator[T], AsyncIterator[T]):
             return result
 
         if self.paginator and self.paginator.has_more:
+            if asyncio.iscoroutinefunction(self.paginator.next_page):
+                raise RuntimeError(
+                    "This collection was returned by an async client — use 'async for' instead of 'for'"
+                )
             new_collection = self.paginator.next_page()
             self.items.extend(new_collection.items)  # Append new items
             self.paginator = new_collection.paginator
