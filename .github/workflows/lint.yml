@@ -43,3 +43,6 @@ jobs:
 
       - name: Run Flake8
         run: flake8 paddle_billing tests examples
+
+      - name: Check async stubs are up to date
+        run: python scripts/generate_async_stubs.py --check
