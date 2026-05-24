@@ -1,6 +1,9 @@
 # AUTO-GENERATED STUB — DO NOT EDIT DIRECTLY.
 # Source: paddle_billing/Resources/Transactions/TransactionsClient.py
 # Regenerate with: python scripts/generate_async_stubs.py
+#
+# This is a type-checker-only (.pyi) stub file. It is NOT importable at runtime.
+# Import AsyncClient from paddle_billing.AsyncClient; do not import this file directly.
 from paddle_billing.ResponseParser import ResponseParser
 
 from paddle_billing.Entities.Transaction import Transaction

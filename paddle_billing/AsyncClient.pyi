@@ -1,7 +1,11 @@
 # AUTO-GENERATED STUB — DO NOT EDIT DIRECTLY.
 # Source: paddle_billing/AsyncClient.py
 # Regenerate with: python scripts/generate_async_stubs.py
+#
+# This is a type-checker-only (.pyi) stub file. It is NOT importable at runtime.
+# Import AsyncClient from paddle_billing.AsyncClient; do not import this file directly.
 import asyncio
+import contextvars
 from json import dumps as json_dumps
 from logging import Logger, getLogger
 from typing import Any
@@ -76,6 +80,14 @@ class AsyncClient:
     async def close(self): ...
     @staticmethod
     def null_logger() -> Logger: ...
+    @property
+    def payload(self) -> str | None: ...
+    @payload.setter
+    def payload(self, value: str | None) -> None: ...
+    @property
+    def status_code(self) -> int | None: ...
+    @status_code.setter
+    def status_code(self, value: int | None) -> None: ...
     async def _logging_hook(self, response: httpx.Response) -> None: ...
     @staticmethod
     def serialize_json_payload(payload: dict[str, Any] | Operation) -> str: ...

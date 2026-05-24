@@ -1,4 +1,5 @@
 import asyncio
+import contextvars
 from json import dumps as json_dumps
 from logging import Logger, getLogger
 from typing import Any
@@ -76,8 +77,13 @@ class AsyncClient:
         self.log = logger if logger else AsyncClient.null_logger()
         self.client = http_client if http_client else self.build_async_client()
         self.timeout = timeout
-        self.payload = None  # Used by pytest
-        self.status_code = None  # Used by pytest
+        # Per-task context vars so concurrent asyncio.gather() calls don't share state
+        self._payload_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+            f"paddle_async_payload_{id(self)}", default=None
+        )
+        self._status_code_var: contextvars.ContextVar[int | None] = contextvars.ContextVar(
+            f"paddle_async_status_code_{id(self)}", default=None
+        )
 
         self.addresses = AddressesClient(self)
         self.adjustments = AdjustmentsClient(self)
@@ -119,6 +125,22 @@ class AsyncClient:
         null_logger = getLogger("null_async_logger")
         null_logger.addHandler(NullHandler())
         return null_logger
+
+    @property
+    def payload(self) -> str | None:
+        return self._payload_var.get()
+
+    @payload.setter
+    def payload(self, value: str | None) -> None:
+        self._payload_var.set(value)
+
+    @property
+    def status_code(self) -> int | None:
+        return self._status_code_var.get()
+
+    @status_code.setter
+    def status_code(self, value: int | None) -> None:
+        self._status_code_var.set(value)
 
     async def _logging_hook(self, response: httpx.Response) -> None:
         self.log.info(f"Request: {response.request.method} {response.request.url}")

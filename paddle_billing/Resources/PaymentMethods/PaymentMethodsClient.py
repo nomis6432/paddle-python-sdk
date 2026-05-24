@@ -40,6 +40,7 @@ class PaymentMethodsClient:
         return self.client._get(f"/customers/{customer_id}/payment-methods/{payment_method_id}", None, parse)
 
     def delete(self, customer_id: str, payment_method_id: str) -> None:
-        self.client._delete(f"/customers/{customer_id}/payment-methods/{payment_method_id}")
-
-        return None
+        def parse(response):
+            self.response = response
+            return None
+        return self.client._delete(f"/customers/{customer_id}/payment-methods/{payment_method_id}", parse)

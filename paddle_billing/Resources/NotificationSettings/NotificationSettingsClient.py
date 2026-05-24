@@ -52,6 +52,7 @@ class NotificationSettingsClient:
         return self.client._patch(f"/notification-settings/{notification_setting_id}", operation, parse)
 
     def delete(self, notification_setting_id: str) -> None:
-        self.client._delete(f"/notification-settings/{notification_setting_id}")
-
-        return None
+        def parse(response):
+            self.response = response
+            return None
+        return self.client._delete(f"/notification-settings/{notification_setting_id}", parse)

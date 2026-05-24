@@ -25,6 +25,9 @@ STUB_HEADER = """\
 # AUTO-GENERATED STUB — DO NOT EDIT DIRECTLY.
 # Source: {source_rel}
 # Regenerate with: python scripts/generate_async_stubs.py
+#
+# This is a type-checker-only (.pyi) stub file. It is NOT importable at runtime.
+# Import AsyncClient from paddle_billing.AsyncClient; do not import this file directly.
 """
 
 
