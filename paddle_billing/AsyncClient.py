@@ -1,7 +1,7 @@
 import asyncio
 import contextvars
 from json import dumps as json_dumps
-from logging import Logger, getLogger
+from logging import DEBUG, Logger, getLogger
 from typing import Any
 from urllib.parse import urljoin, urlencode
 from uuid import uuid4
@@ -59,6 +59,8 @@ class AsyncClient:
     resource.
     """
 
+    RETRY_STATUSES = frozenset({429, 500, 502, 503, 504})
+
     def __init__(
         self,
         api_key: str,
@@ -79,10 +81,10 @@ class AsyncClient:
         self.timeout = timeout
         # Per-task context vars so concurrent asyncio.gather() calls don't share state
         self._payload_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
-            f"paddle_async_payload_{id(self)}", default=None
+            "paddle_async_payload", default=None
         )
         self._status_code_var: contextvars.ContextVar[int | None] = contextvars.ContextVar(
-            f"paddle_async_status_code_{id(self)}", default=None
+            "paddle_async_status_code", default=None
         )
 
         self.addresses = AddressesClient(self)
@@ -144,8 +146,9 @@ class AsyncClient:
 
     async def _logging_hook(self, response: httpx.Response) -> None:
         self.log.info(f"Request: {response.request.method} {response.request.url}")
-        await response.aread()
-        self.log.debug(f"Response: {response.status_code} {response.text}")
+        if self.log.isEnabledFor(DEBUG):
+            await response.aread()
+            self.log.debug(f"Response: {response.status_code} {response.text}")
 
     @staticmethod
     def serialize_json_payload(payload: dict[str, Any] | Operation) -> str:
@@ -164,8 +167,6 @@ class AsyncClient:
         headers = {"X-Transaction-ID": str(self.transaction_id) if self.transaction_id else str(uuid4())}
         self.payload = self.serialize_json_payload(payload) if payload else None
 
-        retry_statuses = {429, 500, 502, 503, 504}
-
         for attempt in range(self.retry_count + 1):
             if attempt > 0:
                 await asyncio.sleep(2 ** (attempt - 1))
@@ -176,7 +177,7 @@ class AsyncClient:
                 )
                 self.status_code = response.status_code
 
-                if response.status_code in retry_statuses and attempt < self.retry_count:
+                if response.status_code in self.RETRY_STATUSES and attempt < self.retry_count:
                     continue
 
                 response.raise_for_status()
@@ -185,7 +186,7 @@ class AsyncClient:
             except httpx.HTTPStatusError as e:
                 self.status_code = e.response.status_code
 
-                if e.response.status_code in retry_statuses and attempt < self.retry_count:
+                if e.response.status_code in self.RETRY_STATUSES and attempt < self.retry_count:
                     continue
 
                 response_parser = ResponseParser(e.response)

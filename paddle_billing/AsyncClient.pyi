@@ -7,7 +7,7 @@
 import asyncio
 import contextvars
 from json import dumps as json_dumps
-from logging import Logger, getLogger
+from logging import DEBUG, Logger, getLogger
 from typing import Any
 from urllib.parse import urljoin, urlencode
 from uuid import uuid4
